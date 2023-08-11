@@ -7,7 +7,9 @@ import 'package:location/location.dart';
 import 'package:favorite_places/models/place.dart';
 
 class LocationInput extends StatefulWidget {
-  const LocationInput({super.key});
+  const LocationInput({super.key, required this.onSelectLocation});
+
+  final void Function(PlaceLocation location) onSelectLocation;
 
   @override
   State<StatefulWidget> createState() {
@@ -18,6 +20,14 @@ class LocationInput extends StatefulWidget {
 class _LocationInputState extends State<LocationInput> {
   PlaceLocation? _pickedLocation;
   var _isGettingLocation = false;
+
+  String get locationImage {
+    final gMapsApiKey = dotenv.env['G_MAPS_API_KEY'];
+    if (_pickedLocation == null || gMapsApiKey == null) return '';
+    final lat = _pickedLocation!.latitude;
+    final lon = _pickedLocation!.longitude;
+    return 'https://maps.googleapis.com/maps/api/staticmap?center=$lat,$lon&zoom=16&size=1000x300&maptype=roadmap&markers=color:green%7Clabel:A%7C$lat,$lon&key=$gMapsApiKey';
+  }
 
   void _getCurrentLocation() async {
     Location location = Location();
@@ -57,6 +67,7 @@ class _LocationInputState extends State<LocationInput> {
         'https://maps.googleapis.com/maps/api/geocode/json?latlng=$lat,$lon&key=$gMapsApiKey');
     final response = await http.get(url);
     final responseData = json.decode(response.body);
+    print(responseData);
     final address = responseData['results'][0]['formatted_address'];
 
     setState(() {
@@ -67,20 +78,21 @@ class _LocationInputState extends State<LocationInput> {
       );
       _isGettingLocation = false;
     });
+    widget.onSelectLocation(_pickedLocation!);
   }
 
   @override
   Widget build(BuildContext context) {
     Widget _previewContent = _isGettingLocation
         ? const CircularProgressIndicator()
-        : Text(
-            'No location selected',
-            textAlign: TextAlign.center,
-            style: Theme.of(context)
-                .textTheme
-                .bodyLarge!
-                .copyWith(color: Theme.of(context).colorScheme.onBackground),
-          );
+        : _pickedLocation != null
+            ? Image.network(locationImage, fit: BoxFit.cover)
+            : Text(
+                'No location selected',
+                textAlign: TextAlign.center,
+                style: Theme.of(context).textTheme.bodyLarge!.copyWith(
+                    color: Theme.of(context).colorScheme.onBackground),
+              );
 
     return Column(
       children: [
@@ -100,7 +112,7 @@ class _LocationInputState extends State<LocationInput> {
           mainAxisAlignment: MainAxisAlignment.spaceEvenly,
           children: [
             TextButton.icon(
-              onPressed: () {},
+              onPressed: _getCurrentLocation,
               icon: const Icon(Icons.location_on),
               label: const Text('Get current location'),
             ),
