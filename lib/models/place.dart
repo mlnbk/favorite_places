@@ -4,17 +4,17 @@ import 'package:uuid/uuid.dart';
 const uuid = Uuid();
 
 class Place {
-  Place({required this.title, required this.image, required this.placeLocation})
+  Place({required this.title, required this.image, required this.location})
       : id = uuid.v4();
 
   final String id;
   final String title;
   final File image;
-  final PlaceLocation placeLocation;
+  final PlaceLocation location;
 }
 
 class PlaceLocation {
-  PlaceLocation(
+  const PlaceLocation(
       {required this.latitude, required this.longitude, required this.address});
 
   final double latitude;

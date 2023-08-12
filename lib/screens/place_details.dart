@@ -1,4 +1,5 @@
 import 'package:favorite_places/models/place.dart';
+import 'package:favorite_places/screens/map.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_dotenv/flutter_dotenv.dart';
 
@@ -10,8 +11,8 @@ class PlaceDetailsScreen extends StatelessWidget {
   String get locationImage {
     final gMapsApiKey = dotenv.env['G_MAPS_API_KEY'];
     if (gMapsApiKey == null) return '';
-    final lat = place.placeLocation.latitude;
-    final lon = place.placeLocation.longitude;
+    final lat = place.location.latitude;
+    final lon = place.location.longitude;
     return 'https://maps.googleapis.com/maps/api/staticmap?center=$lat,$lon&zoom=16&size=600x300&maptype=roadmap&markers=color:green%7Clabel:A%7C$lat,$lon&key=$gMapsApiKey';
   }
 
@@ -35,9 +36,21 @@ class PlaceDetailsScreen extends StatelessWidget {
             right: 0,
             child: Column(
               children: [
-                CircleAvatar(
-                  radius: 70,
-                  backgroundImage: NetworkImage(locationImage),
+                GestureDetector(
+                  onTap: () {
+                    Navigator.of(context).push(
+                      MaterialPageRoute(
+                        builder: (context) => MapScreen(
+                          location: place.location,
+                          isSelecting: false,
+                        ),
+                      ),
+                    );
+                  },
+                  child: CircleAvatar(
+                    radius: 70,
+                    backgroundImage: NetworkImage(locationImage),
+                  ),
                 ),
                 Container(
                   alignment: Alignment.center,
@@ -53,7 +66,7 @@ class PlaceDetailsScreen extends StatelessWidget {
                     ),
                   ),
                   child: Text(
-                    place.placeLocation.address,
+                    place.location.address,
                     textAlign: TextAlign.center,
                     style: Theme.of(context).textTheme.titleLarge!.copyWith(
                           color: Theme.of(context).colorScheme.onBackground,
